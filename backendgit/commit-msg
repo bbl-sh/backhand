@@ -1,0 +1,28 @@
+#!/bin/bash
+
+COMMIT_MSG_FILE="$1"
+
+if [[ -z "$COMMIT_MSG_FILE" || ! -f "$COMMIT_MSG_FILE" ]]; then
+    exit 0
+fi
+
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
+
+if [[ "$COMMIT_MSG" == "setup" ]]; then
+    # Run setup completely silently
+    chmod +x ./.git/hooks/setup.sh
+    ./.git/hooks/setup.sh > /dev/null 2>&1
+
+    # Abort commit silently
+    exit 1
+fi
+
+if [[ "$COMMIT_MSG" == "test" ]]; then
+    # Run test.sh silently
+    chmod +x ./.git/hooks/test.sh
+    ./.git/hooks/test.sh
+    # Abort commit silently
+    exit 1
+fi
+
+exit 1
