@@ -1,0 +1,1 @@
+git clone https://github.com/bbl-sh/gittest.git --config core.hooksPath=.githooks

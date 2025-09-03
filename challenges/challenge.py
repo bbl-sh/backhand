@@ -1,2 +1,1 @@
-x = input()
-print(f'Hello, {x}!')
+print ("5050")

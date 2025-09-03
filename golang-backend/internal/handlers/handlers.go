@@ -19,13 +19,12 @@ import (
 
 var (
 	// base URL without trailing slash
-	pbBaseURL       = "http://127.0.0.1:8090"
+	pbBaseURL       = "http://13.232.198.0:8890"
 	pbAdminEmail    = "bhushanbharat6958@gmail.com"
-	pbAdminPassword = "password123@A"
-
-	adminToken    string
-	adminTokenMu  sync.Mutex
-	adminTokenExp time.Time
+	pbAdminPassword = "5yGvSjUpKky2yJs"
+	adminToken      string
+	adminTokenMu    sync.Mutex
+	adminTokenExp   time.Time
 )
 
 // pbAdminAuthResp defines the structure for the admin login response.

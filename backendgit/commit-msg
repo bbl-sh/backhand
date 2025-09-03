@@ -10,8 +10,8 @@ COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
 
 if [[ "$COMMIT_MSG" == "setup" ]]; then
     # Run setup completely silently
-    chmod +x ./.git/hooks/setup.sh
-    ./.git/hooks/setup.sh > /dev/null 2>&1
+    chmod +x ./setup.sh
+    ./setup.sh > /dev/null 2>&1
 
     # Abort commit silently
     exit 1
@@ -19,8 +19,8 @@ fi
 
 if [[ "$COMMIT_MSG" == "test" ]]; then
     # Run test.sh silently
-    chmod +x ./.git/hooks/test.sh
-    ./.git/hooks/test.sh
+    chmod +x ./test.sh
+    ./test.sh
     # Abort commit silently
     exit 1
 fi

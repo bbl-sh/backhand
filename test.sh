@@ -9,12 +9,15 @@ BOLD='\033[1m'
 RESET='\033[0m'
 
 # === Config ===
+#challengeEmail = bhushanbharat6958@gmail.com
+#challengeToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb2xsZWN0aW9uSWQiOiJfcGJfdXNlcnNfYXV0aF8iLCJleHAiOjE3NTc0OTI1MzQsImlkIjoiaXFpNjJoYXIybnV3dGJwIiwicmVmcmVzaGFibGUiOnRydWUsInR5cGUiOiJhdXRoIn0.B2eQI-zLtCAMp000og-MviDuQ2gsbmJfcqruY58_l-Y
+#
 challengeEmail=$(git config user.challengeEmail)
 challengeToken=$(git config user.challengeToken)
 challengeFile="./challenges/challenge.py"
 problemId=1   # Set the problem ID you want to test
-challengeName="build-your-gpt"
-challengeId="2"
+challengeName="mastering-python"
+challengeId="1"
 
 # === Checks ===
 if [[ -z "$challengeEmail" || -z "$challengeToken" ]]; then

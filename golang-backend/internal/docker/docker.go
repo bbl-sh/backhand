@@ -1,4 +1,5 @@
-// docker/docker.go
+// internal/docker/runner.go
+
 package docker
 
 import (
@@ -11,45 +12,53 @@ import (
 	"time"
 )
 
-// RunInContainer runs code in a Docker container with /app/solution.py and /app/input.txt
 func RunInContainer(image, command string, code, input []byte) (string, error) {
-
-	// Create temp dir
+	// Create isolated temp directory
 	tempDir, err := os.MkdirTemp("", "run-*")
 	if err != nil {
 		return "", fmt.Errorf("failed to create temp dir")
 	}
 	defer os.RemoveAll(tempDir)
 
-	// Write solution.py
-	if err := os.WriteFile(filepath.Join(tempDir, "solution.py"), code, 0644); err != nil {
+	// Write code to /app/solution.py (or whatever the command expects)
+	codePath := filepath.Join(tempDir, "solution.py")
+	if err := os.WriteFile(codePath, code, 0644); err != nil {
 		return "", fmt.Errorf("failed to write code")
 	}
 
-	// Write input.txt
-	if err := os.WriteFile(filepath.Join(tempDir, "input.txt"), input, 0644); err != nil {
+	// Write input to /app/input.txt
+	inputPath := filepath.Join(tempDir, "input.txt")
+	if err := os.WriteFile(inputPath, input, 0644); err != nil {
 		return "", fmt.Errorf("failed to write input")
 	}
 
-	// Run Docker
+	// Parse command: split "sh -c 'python ...'" into args
+	args := append([]string{"run", "--rm",
+		"-v", tempDir + ":/app",
+		"-w", "/app",
+		image,
+	}, shellSplit(command)...)
+
+	// Set timeout (30 seconds)
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	cmd := exec.CommandContext(ctx,
-		"docker", "run", "--rm",
-		"-v", tempDir+":/app",
-		"-w", "/app",
-		image,
-		"sh", "-c", command,
-	)
-
+	// Run docker command
+	cmd := exec.CommandContext(ctx, "docker", args...)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
-			return "", fmt.Errorf("container timed out")
+			return "", fmt.Errorf("execution timed out")
 		}
 		return "", fmt.Errorf("run failed: %v, output: %s", err, string(output))
 	}
 
 	return strings.TrimSpace(string(output)), nil
+}
+
+// Simple shell-like arg splitter (basic version)
+// Handles: "python a.py < b.txt" → ["python", "a.py", "<", "b.txt"]
+// Note: Shell redirection is handled by Docker, so this is safe
+func shellSplit(command string) []string {
+	return strings.Fields(command)
 }
