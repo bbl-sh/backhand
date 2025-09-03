@@ -19,7 +19,7 @@ fi
 echo "Configuration found. Sending verification request..."
 
 # Send curl request to the test endpoint.
-curl -X GET http://localhost:8080/testConnection \
+curl -X GET http://13.232.198.0:8080/testConnection \
 -H "Authorization: Bearer $challengeToken" \
 -H "X-User-Email: $challengeEmail"
 

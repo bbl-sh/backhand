@@ -21,7 +21,7 @@ BG_RED='\033[41m'
 NC='\033[0m'
 
 # Backend API endpoint
-API_URL="http://localhost:8080/login"
+API_URL="http://13.232.198.0:8080/login"
 
 # ─── Helper Functions ─────────────────────────────────────────────────────────
 

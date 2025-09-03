@@ -17,7 +17,7 @@ challengeToken=$(git config user.challengeToken)
 challengeFile="./challenges/challenge.py"
 problemId=1   # Set the problem ID you want to test
 challengeName="mastering-python"
-challengeId="1"
+challengeId="4"
 
 # === Checks ===
 if [[ -z "$challengeEmail" || -z "$challengeToken" ]]; then
@@ -39,17 +39,18 @@ echo -e "✅ ${GREEN}Configuration OK${RESET}"
 echo -e "📧 User: ${YELLOW}$challengeEmail${RESET}"
 echo -e "📌 Problem ID: ${YELLOW}$problemId${RESET}"
 echo -e "📝 Code file: ${YELLOW}$challengeFile${RESET}"
-echo -e "🚀 Sending submission to ${CYAN}http://localhost:8080/challenge01${RESET}..."
+echo -e "🚀 Sending submission to ${CYAN}http://*:8080/challenge01${RESET}..."
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 
 # === Send request ===
-response=$(curl -s -X POST http://localhost:8080/challenge01 \
+response=$(curl -s  -X POST http://localhost:8080/challenge01 \
   -H "Authorization: Bearer $challengeToken" \
   -H "X-User-Email: $challengeEmail" \
   -F "challengeId=$challengeId" \
   -F "challengeName=$challengeName" \
   -F "problemId=$problemId" \
   -F "code=@$challengeFile")
+
 
 if [[ $? -ne 0 || -z "$response" ]]; then
   echo -e "\n${RED}❌ Error:${RESET} Request failed."
