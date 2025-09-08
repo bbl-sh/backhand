@@ -11,8 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/john221wick/golang-backend/internal/auth"
-	"github.com/john221wick/golang-backend/internal/middleware"
+	"github.com/john221wick/golang-backend/learn/internal/auth"
+	"github.com/john221wick/golang-backend/learn/internal/middleware"
 )
 
 // ==== PocketBase Configuration and Admin Authentication ====

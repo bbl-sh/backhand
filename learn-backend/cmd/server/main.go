@@ -4,8 +4,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/john221wick/golang-backend/internal/handlers"
-	"github.com/john221wick/golang-backend/internal/middleware"
+	"github.com/john221wick/golang-backend/learn/internal/handlers"
+	"github.com/john221wick/golang-backend/learn/internal/middleware"
 
 	"github.com/gorilla/mux"
 )
