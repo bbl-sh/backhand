@@ -4,8 +4,8 @@ package handlers
 import (
 	"strings"
 
-	"github.com/john221wick/golang-backend/internal/config"
-	"github.com/john221wick/golang-backend/internal/docker"
+	"github.com/john221wick/golang-backend/learn/internal/config"
+	"github.com/john221wick/golang-backend/learn/internal/docker"
 )
 
 type TestInput struct {

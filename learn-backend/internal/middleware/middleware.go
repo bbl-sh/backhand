@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/john221wick/golang-backend/internal/auth"
+	"github.com/john221wick/golang-backend/learn/internal/auth"
 )
 
 type contextKey string
