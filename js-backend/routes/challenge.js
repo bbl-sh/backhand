@@ -1,13 +1,12 @@
+// backend/routes/challenge.js
 import express from "express";
 import multer from "multer";
-import { exec } from "child_process";
-import path from "path";
-import { fileURLToPath } from "url";
-import fs from "fs";
-import jwt from "jsonwebtoken";
-import pb from "../config/pocketbase.js"; // Re-exported PocketBase instance
 import { ProblemConfigs } from "../ProblemConfigs.js";
-import { decodeToken } from "../utils/jwt.js"; // 👈 Import your JWT utility
+import { runDocker } from "../utils/docker.js";
+import { verifyAuth } from "../middleware/verifyAuth.js";
+import { fileURLToPath } from "url";
+import path from "path";
+import { getPB } from "../config/pb.js";
 
 const router = express.Router();
 const upload = multer({ dest: "uploads/" });
@@ -15,98 +14,117 @@ const upload = multer({ dest: "uploads/" });
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// POST /challenge/challenge01
-router.post("/challenge01", upload.single("code"), async (req, res) => {
-  try {
-    const { challengeId, problemId } = req.body;
-    const authHeader = req.headers["authorization"];
-    const userEmail = req.headers["x-user-email"];
+router.post(
+  "/challenge01",
+  upload.single("code"),
+  verifyAuth,
+  async (req, res) => {
+    try {
+      const problemId = req.body.problemId;
+      const challengeId = req.body.ChallengeId || req.body.learnId;
+      const challengeName = req.body.ChallengeName || req.body.learnName;
 
-    if (!authHeader || !userEmail) {
-      return res
-        .status(400)
-        .json({ error: "Missing Authorization or X-User-Email header" });
-    }
+      console.log("Received challenge request:", {
+        challengeId,
+        challengeName,
+        problemId,
+      });
 
-    const token = authHeader.split(" ")[1];
-    if (!token) {
-      return res
-        .status(400)
-        .json({ error: "Invalid Authorization header format" });
-    }
+      const problemConfig = ProblemConfigs[problemId];
+      if (!problemConfig) throw new Error("Invalid problemId");
 
-    const decoded = decodeToken(token); // 👈 Use your utility
-    if (!decoded || !decoded.id) {
-      return res.status(401).json({ error: "Invalid or malformed token" });
-    }
+      if (!req.file) throw new Error("No file uploaded");
 
-    // Verify user exists and email matches
-    const userRecord = await pb.collection("users").getOne(decoded.id);
-    if (!userRecord || userRecord.email !== userEmail) {
-      return res.status(403).json({ error: "User authentication failed" });
-    }
+      runDocker(
+        problemConfig,
+        req.file.path,
+        __dirname,
+        async (err, result) => {
+          let responsePayload;
 
-    console.log("✅ Authenticated user:", userEmail);
+          if (err) {
+            console.error("Docker execution error:", err.details);
+            responsePayload = {
+              status: "Not Accepted",
+              message: err.stderr || err.details || "Compilation/Runtime Error",
+              user_email: req.user.email,
+              actual_output: "",
+              expected_output: problemConfig.expectedOutput,
+              pass: false,
+              challengeId,
+              challengeName,
+              problemId,
+              timestamp: new Date().toISOString(),
+            };
+          } else {
+            responsePayload = {
+              status: result.pass ? "Accepted" : "Not Accepted",
+              message: result.pass ? "Output matched" : "Output did not match",
+              user_email: req.user.email,
+              actual_output: result.actual_output,
+              expected_output: result.expected_output,
+              pass: result.pass,
+              challengeId,
+              challengeName,
+              problemId,
+              timestamp: new Date().toISOString(),
+            };
+          }
 
-    // Validate file upload
-    if (!req.file) {
-      return res.status(400).json({ error: "No file uploaded" });
-    }
+          // === Update ChallengeProgress collection ===
+          try {
+            const pb = await getPB();
+            const query = `email="${req.user.email}" && ChallengeName="${challengeName}"`;
 
-    const filePath = req.file.path;
-    const problemConfig = ProblemConfigs[problemId];
+            try {
+              const existing = await pb
+                .collection("ChallengeProgress")
+                .getFirstListItem(query);
 
-    if (!problemConfig) {
-      return res.status(400).json({ error: "Invalid problemId" });
-    }
+              // Update ChallengeName if needed
+              await pb.collection("ChallengeProgress").update(existing.id, {
+                email: req.user.email,
+                ChallengeId: challengeId,
+                ChallengeName: challengeName,
+              });
+            } catch (lookupErr) {
+              if (lookupErr.status === 404) {
+                // Create new record
+                await pb.collection("ChallengeProgress").create({
+                  email: req.user.email,
+                  ChallengeId: challengeId,
+                  ChallengeName: challengeName,
+                });
+              } else {
+                console.error(
+                  "❌ ChallengeProgress update failed:",
+                  lookupErr.message,
+                );
+              }
+            }
+          } catch (dbErr) {
+            console.error("❌ Error connecting to PocketBase:", dbErr.message);
+          }
 
-    const workDir = path.join(__dirname, "../docker-scripts", `${Date.now()}`);
-    fs.mkdirSync(workDir, { recursive: true });
-
-    const codeFilePath = path.join(workDir, "solution.py");
-    fs.renameSync(filePath, codeFilePath);
-
-    const inputFilePath = path.join(workDir, "input.txt");
-    fs.writeFileSync(inputFilePath, problemConfig.input);
-
-    const dockerCommand = `
-docker run --rm -v ${workDir}:/app ${problemConfig.image} sh -c "${problemConfig.command}"
-    `.trim();
-
-    console.log("Executing Docker command:", dockerCommand);
-
-    exec(dockerCommand, (error, stdout, stderr) => {
-      // Cleanup
-      fs.rmSync(workDir, { recursive: true, force: true });
-
-      if (error) {
-        console.error("Docker execution error:", error.message);
-        console.error("Stderr:", stderr);
-        return res.status(500).json({
-          error: "Docker execution failed",
-          details: error.message,
-          stderr: stderr,
-        });
-      }
-
-      const passed = stdout.trim() === problemConfig.expectedOutput;
-
-      return res.json({
-        status: "Success",
-        user_email: userEmail,
-        actual_output: stdout.trim(),
-        expected_output: problemConfig.expectedOutput,
-        pass: passed,
+          return res.status(200).json(responsePayload);
+        },
+      );
+    } catch (err) {
+      console.error("Error in challenge handler:", err.message);
+      return res.status(200).json({
+        status: "Not Accepted",
+        message: err.message,
+        user_email: req.user?.email || null,
+        actual_output: "",
+        expected_output: null,
+        pass: false,
+        challengeId: req.body.challengeId || req.body.learnId || null,
+        challengeName: req.body.challengeName || req.body.learnName || null,
+        problemId: req.body.problemId || null,
         timestamp: new Date().toISOString(),
       });
-    });
-  } catch (err) {
-    console.error("Error in challenge handler:", err.message);
-    return res.status(400).json({
-      status: "Error",
-      message: err.message,
-    });
-  }
-});
+    }
+  },
+);
 
 export default router;

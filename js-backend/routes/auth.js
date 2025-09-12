@@ -1,11 +1,13 @@
 import express from "express";
-import PocketBase from "pocketbase";
+import pb from "../config/pocketbase.js";
 
 const router = express.Router();
 
-// Reuse the same PocketBase instance (imported from config/pocketbase.js)
-const pb = new PocketBase("http://13.232.198.0:8890");
-
+/**
+ * === Login Route ===
+ * POST /login
+ * Body: { email, password }
+ */
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
