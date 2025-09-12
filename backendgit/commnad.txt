@@ -1,1 +1,1 @@
-git clone https://github.com/bbl-sh/gittest.git --config core.hooksPath=.githooks
+git clone https://github.com/bbl-sh/backhand-git.git --config core.hooksPath=.githooks
