@@ -126,6 +126,7 @@ router.post(
             // Record exists, update it
             await pb.collection("userProgress").update(existingProgress.id, {
               modulesCompleted: challengeId,
+              moduleId: 9, // <-- ADDED HERE
             });
           } catch (lookupErr) {
             if (lookupErr.status === 404) {
@@ -135,6 +136,7 @@ router.post(
                 slug: "build-your-own-react",
                 modulesCompleted: challengeId,
                 type: "challenges",
+                moduleId: 9, // <-- AND ADDED HERE
               });
             } else {
               console.error(
