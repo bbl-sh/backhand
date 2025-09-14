@@ -80,6 +80,7 @@ router.post(
 
       // --- Database Update on Success ---
       if (result.pass) {
+        // 1. Update ChallengeProgress
         try {
           const pb = await getPB();
           const query = `email="${req.user.email}" && ChallengeName="${challengeName}"`;
@@ -111,6 +112,43 @@ router.post(
         } catch (dbError) {
           console.error("❌ PocketBase update failed:", dbError.message);
           // Don't block the response to the user if the DB fails
+        }
+
+        // 2. Update userProgress
+        try {
+          const pb = await getPB();
+          const userProgressQuery = `email="${req.user.email}" && slug="build-your-own-react"`;
+
+          try {
+            const existingProgress = await pb
+              .collection("userProgress")
+              .getFirstListItem(userProgressQuery);
+            // Record exists, update it
+            await pb.collection("userProgress").update(existingProgress.id, {
+              modulesCompleted: challengeId,
+            });
+          } catch (lookupErr) {
+            if (lookupErr.status === 404) {
+              // No record exists, create a new one
+              await pb.collection("userProgress").create({
+                email: req.user.email,
+                slug: "build-your-own-react",
+                modulesCompleted: challengeId,
+                type: "challenges",
+              });
+            } else {
+              console.error(
+                "❌ userProgress lookup/update failed:",
+                lookupErr.message,
+              );
+            }
+          }
+        } catch (dbError) {
+          console.error(
+            "❌ PocketBase userProgress update failed:",
+            dbError.message,
+          );
+          // Don't block the response to the user if this DB call fails either
         }
       }
 
