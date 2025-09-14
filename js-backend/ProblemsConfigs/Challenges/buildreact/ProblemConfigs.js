@@ -1,0 +1,73 @@
+export const ProblemConfigs = {
+  1: {
+    image: "nodejs-basic-1",
+    command: "node /app/solution.js",
+    input: "",
+    filename: "solution.js",
+    expectedOutput: "1\n2\nReset.\n1\n2",
+  },
+  2: {
+    image: "nodejs-basic-1",
+    command: "node /app/solution.js",
+    input: "",
+    filename: "solution.js",
+    expectedOutput:
+      "Computing square of 5...\n25\n25\nComputing square of 6...\n36\n36\n25",
+  },
+  3: {
+    image: "nodejs-basic-1",
+    command: "node /app/solution.js",
+    input: "",
+    filename: "solution.js",
+    expectedOutput: "Final count: 3",
+  },
+  4: {
+    image: "nodejs-basic-1",
+    command: "node /app/solution.js",
+    input: "",
+    filename: "solution.js",
+    expectedOutput: "Count: 1\nCount: 2",
+  },
+  5: {
+    image: "nodejs-basic-1",
+    command: "node /app/solution.js",
+    input: "",
+    filename: "solution.js",
+    expectedOutput: "Mounted\nCleaned up\nMounted",
+  },
+  6: {
+    image: "nodejs-basic-1",
+    command: "node /app/solution.js",
+    input: "",
+    filename: "solution.js",
+    expectedOutput: "Component: User",
+  },
+  7: {
+    image: "nodejs-basic-1",
+    command: "node /app/solution.js",
+    input: "",
+    filename: "solution.js",
+    expectedOutput: "Timer: 1\nTimer: 2\nTimer: 3",
+  },
+  8: {
+    image: "nodejs-basic-1",
+    command: "node /app/solution.js",
+    input: "",
+    filename: "solution.js",
+    expectedOutput: "Buddy barks!",
+  },
+  9: {
+    image: "nodejs-basic-1",
+    command: "node /app/solution.js",
+    input: "",
+    filename: "solution.js",
+    expectedOutput: '<div class="btn">Click</div>',
+  },
+  10: {
+    image: "nodejs-basic-1",
+    command: "node /app/solution.js",
+    input: "",
+    filename: "solution.js",
+    expectedOutput: "Button created",
+  },
+};
